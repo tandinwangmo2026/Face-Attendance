@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Mark Attendance</h1>
+<p class="subtitle">Face the camera to mark your attendance</p>
+
+<div class="attendance-container">
+  <video id="video" autoplay muted playsinline></video>
+  <div id="status" class="status-box">⏳ Waiting for Person C to add AI script...</div>
+</div>
+
+<div class="attendance-log" id="attendanceLog"></div>
+{% endblock %}

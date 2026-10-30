@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Admin Dashboard</h1>
+<p class="subtitle">Welcome back, {{ session.admin }}!</p>
+
+<div class="stats">
+  <div class="stat-card">
+    <div class="stat-number">{{ students|length }}</div>
+    <div class="stat-label">Registered Students</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-number">{{ today_count }}</div>
+    <div class="stat-label">Present Today ({{ today }})</div>
+  </div>
+</div>
+
+<h2 class="section-title">Registered Students</h2>
+{% if students %}
+<table>
+  <thead>
+    <tr>
+      <th>Enrollment No.</th>
+      <th>Name</th>
+      <th>Department</th>
+      <th>Face Data</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for s in students %}
+    <tr>
+      <td>{{ s.enrollment_no }}</td>
+      <td>{{ s.name }}</td>
+      <td>{{ s.department }}</td>
+      <td>{{ '✅ Yes' if s.face_encoding else '❌ No' }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="empty">No students registered yet. <a href="{{ url_for('register_page') }}">Register one →</a></p>
+{% endif %}
+{% endblock %}

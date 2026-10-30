@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Register New Student</h1>
+
+<div class="register-grid">
+  <div class="form-panel">
+    <label>Enrollment Number</label>
+    <input type="text" id="enrollment" placeholder="e.g. 02230045" required>
+    <label>Full Name</label>
+    <input type="text" id="name" placeholder="e.g. Tandin Wangmo" required>
+    <label>Department</label>
+    <select id="department">
+      <option>Computer System and Network</option>
+      <option>Civil Engineering</option>
+      <option>Electrical Engineering</option>
+    </select>
+    <button id="registerBtn" onclick="alert('Waiting for Person C to connect the camera script!')">📸 Capture Face & Register</button>
+    <p id="message" class="message"></p>
+  </div>
+
+  <div class="camera-panel">
+    <video id="regVideo" autoplay muted playsinline></video>
+    <p id="camStatus" class="cam-status">Camera feed will appear here</p>
+  </div>
+</div>
+{% endblock %}
