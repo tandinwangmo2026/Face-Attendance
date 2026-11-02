@@ -40,8 +40,15 @@ def dashboard():
     students = db.execute("SELECT * FROM students ORDER BY student_id DESC").fetchall()
     today = datetime.date.today().isoformat()
     today_count = db.execute("SELECT COUNT(DISTINCT enrollment_no) FROM attendance WHERE attendance_date=?", (today,)).fetchone()[0]
+    
+    # 🆕 GET THE LIST OF PEOPLE PRESENT TODAY
+    present_records = db.execute("SELECT enrollment_no FROM attendance WHERE attendance_date=?", (today,)).fetchall()
+    present_today = [row['enrollment_no'] for row in present_records]
+    
     db.close()
-    return render_template('dashboard.html', students=students, today=today, today_count=today_count)
+    
+    # 🆕 PASS IT TO THE HTML
+    return render_template('dashboard.html', students=students, today=today, today_count=today_count, present_today=present_today)
 
 # ---------- REGISTER ----------
 @app.route('/register')

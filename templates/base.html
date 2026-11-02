@@ -1,25 +1,54 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Face Attendance System</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Face Attendance{% endblock %}</title>
+    
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <!-- 🚨 FACE AI LIBRARY (The missing piece!) -->
+    <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.js"></script>
 </head>
 <body>
-  <nav class="navbar">
-    <span class="logo">🎓 Face Attendance</span>
-    {% if session.admin %}
-      <div class="nav-links">
-        <a href="{{ url_for('dashboard') }}">Dashboard</a>
-        <a href="{{ url_for('register_page') }}">Register Student</a>
-        <a href="{{ url_for('attendance_page') }}">Attendance</a>
-        <a href="{{ url_for('reports') }}">Reports</a>
-        <a href="{{ url_for('logout') }}">Logout</a>
-      </div>
+
+    {% if session.get('admin') %}
+    <!-- FLOATING TOP NAVBAR -->
+    <div class="nav-wrapper">
+        <nav class="floating-nav">
+            <div class="nav-brand">
+                <div class="logo-icon"><i class="fa-solid fa-expand"></i></div>
+                <span>FaceID</span>
+            </div>
+            <div class="nav-links">
+                <a href="{{ url_for('dashboard') }}" class="{% if request.endpoint == 'dashboard' %}active{% endif %}">Dashboard</a>
+                <a href="{{ url_for('register_page') }}" class="{% if request.endpoint == 'register_page' %}active{% endif %}">Register</a>
+                <a href="{{ url_for('attendance_page') }}" class="{% if request.endpoint == 'attendance_page' %}active{% endif %}">Scan Face</a>
+                <a href="{{ url_for('reports') }}" class="{% if request.endpoint == 'reports' %}active{% endif %}">Reports</a>
+            </div>
+            <div class="nav-user">
+                <a href="{{ url_for('logout') }}" class="logout-btn"><i class="fa-solid fa-power-off"></i></a>
+            </div>
+        </nav>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-container">
+        <div class="page-header">
+            <h1>{% block page_title %}Dashboard{% endblock %}</h1>
+        </div>
+        <div class="content-area">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+    {% else %}
+        {% block content_public %}{% endblock %}
     {% endif %}
-  </nav>
-  <main class="container">
-    {% block content %}{% endblock %}
-  </main>
+
 </body>
 </html>

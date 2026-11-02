@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Login - FaceID{% endblock %}
+
+{% block content_public %}
+<div class="login-split-page">
+    <!-- Left Side: High-Tech Biometric Branding -->
+    <div class="login-left-panel">
+        
+        <!-- The scanning visual -->
+        <div class="scanner-container">
+            <!-- A futuristic face outline SVG -->
+            <svg class="face-outline" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <path d="M50 10 C30 10 20 30 20 50 C20 70 30 90 50 90 C70 90 80 70 80 50 C80 30 70 10 50 10 Z" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
+                <!-- Eyes -->
+                <circle cx="35" cy="45" r="3" fill="rgba(255,255,255,0.2)"/>
+                <circle cx="65" cy="45" r="3" fill="rgba(255,255,255,0.2)"/>
+                <!-- Face Mapping Points -->
+                <circle cx="50" cy="50" r="1.5" fill="#818cf8"/>
+                <circle cx="35" cy="45" r="1.5" fill="#818cf8"/>
+                <circle cx="65" cy="45" r="1.5" fill="#818cf8"/>
+                <circle cx="50" cy="70" r="1.5" fill="#818cf8"/>
+                <circle cx="40" cy="65" r="1.5" fill="#818cf8"/>
+                <circle cx="60" cy="65" r="1.5" fill="#818cf8"/>
+                <line x1="35" y1="45" x2="50" y2="50" stroke="#818cf8" stroke-width="0.5" stroke-dasharray="2,2"/>
+                <line x1="65" y1="45" x2="50" y2="50" stroke="#818cf8" stroke-width="0.5" stroke-dasharray="2,2"/>
+                <line x1="50" y1="50" x2="50" y2="70" stroke="#818cf8" stroke-width="0.5" stroke-dasharray="2,2"/>
+            </svg>
+            
+            <!-- The moving laser line -->
+            <div class="scan-line"></div>
+            
+            <!-- Corner brackets -->
+            <div class="corner top-left"></div>
+            <div class="corner top-right"></div>
+            <div class="corner bottom-left"></div>
+            <div class="corner bottom-right"></div>
+        </div>
+
+        <div class="brand-content">
+            <h1>Biometric Authentication</h1>
+            <p>System initialized. Please authenticate to access the FaceID Attendance Dashboard.</p>
+            <div class="system-status">
+                <span class="status-dot"></span> AI Engine Online
+            </div>
+        </div>
+    </div>
+    
+    <!-- Right Side: Form -->
+    <div class="login-right-panel">
+        <div class="form-container">
+            <h2>Admin Login</h2>
+            <p class="form-subtitle">Enter your credentials to access the terminal.</p>
+            
+            {% if error %}
+                <div class="alert error">
+                    <i class="fa-solid fa-circle-exclamation"></i> {{ error }}
+                </div>
+            {% endif %}
+
+            <form method="POST" action="/">
+                <div class="input-group">
+                    <label>Admin Username</label>
+                    <div class="input-icon-wrap">
+                        <i class="fa-solid fa-user"></i>
+                        <input type="text" name="username" placeholder="Enter username" required>
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <label>Password</label>
+                    <div class="input-icon-wrap">
+                        <i class="fa-solid fa-lock"></i>
+                        <input type="password" name="password" placeholder="Enter password" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-gradient w-100 mt-2">
+                    Authenticate <i class="fa-solid fa-fingerprint"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

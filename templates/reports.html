@@ -1,37 +1,53 @@
 {% extends "base.html" %}
+{% block title %}Attendance Reports{% endblock %}
+{% block page_title %}Attendance Reports{% endblock %}
+
 {% block content %}
-<h1>Attendance Reports</h1>
+<div class="glass-card">
+    <div class="card-top">
+        <h3>All Attendance Records</h3>
+        <a href="{{ url_for('export_csv') }}" class="btn-gradient">
+            <i class="fa-solid fa-download"></i> Export to CSV
+        </a>
+    </div>
 
-<div class="report-actions">
-  <a href="{{ url_for('export_csv') }}" class="btn">⬇️ Export to CSV (Excel)</a>
+    {% if records %}
+    <div class="table-responsive">
+        <table class="clean-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Student Info</th>
+                    <th>Enrollment No</th>
+                    <th>Department</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in records %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>
+                        <div class="user-cell">
+                            <div class="avatar"><i class="fa-solid fa-user"></i></div>
+                            <strong>{{ r.name }}</strong>
+                        </div>
+                    </td>
+                    <td>{{ r.enrollment_no }}</td>
+                    <td><span class="dept-tag">{{ r.department }}</span></td>
+                    <td>{{ r.attendance_date }}</td>
+                    <td><span class="status-pill active">{{ r.status }}</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="fa-solid fa-clipboard-list"></i>
+        <p>No attendance records found yet.</p>
+    </div>
+    {% endif %}
 </div>
-
-{% if records %}
-<table>
-  <thead>
-    <tr>
-      <th>#</th>
-      <th>Name</th>
-      <th>Enrollment</th>
-      <th>Department</th>
-      <th>Date</th>
-      <th>Status</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for r in records %}
-    <tr>
-      <td>{{ loop.index }}</td>
-      <td>{{ r.name }}</td>
-      <td>{{ r.enrollment_no }}</td>
-      <td>{{ r.department }}</td>
-      <td>{{ r.attendance_date }}</td>
-      <td>{{ r.status }}</td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
-{% else %}
-<p class="empty">No attendance records yet.</p>
-{% endif %}
 {% endblock %}

@@ -1,12 +1,109 @@
 {% extends "base.html" %}
-{% block content %}
-<h1>Mark Attendance</h1>
-<p class="subtitle">Face the camera to mark your attendance</p>
+{% block title %}Take Attendance{% endblock %}
+{% block page_title %}Live Face Scanner{% endblock %}
 
-<div class="attendance-container">
-  <video id="video" autoplay muted playsinline></video>
-  <div id="status" class="status-box">⏳ Waiting for Person C to add AI script...</div>
+{% block content %}
+<div class="scan-layout">
+    <div class="camera-card large">
+        <video id="video" autoplay muted playsinline></video>
+        <div class="camera-frame"></div>
+        <div class="status-badge" id="status">Loading AI Models...</div>
+    </div>
+    <div id="log" class="log-area"></div>
 </div>
 
-<div class="attendance-log" id="attendanceLog"></div>
+<script>
+    const video = document.getElementById('video');
+    const statusBox = document.getElementById('status');
+    const log = document.getElementById('log');
+    
+    let faceMatcher = null;
+    let isScanning = false;
+
+    // 🆕 USE FLASK URL_FOR TO GUARANTEE THE PATH
+    const MODEL_URL = "{{ url_for('static', filename='face_models') }}";
+
+    // 1. Load AI Models
+    Promise.all([
+        faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+        faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+        faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
+    ]).then(async () => {
+        statusBox.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Loading Database...';
+        
+        const res = await fetch('/encodings');
+        const data = await res.json();
+        
+        if (data.length === 0) {
+            statusBox.innerText = "No students registered!";
+            return;
+        }
+
+        const labeledFaceDescriptors = data.map(student => {
+            const desc = new Float32Array(student.encoding);
+            return new faceapi.LabeledFaceDescriptors(student.name + "|" + student.enrollment_no, [desc]);
+        });
+
+        faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors, 0.5); 
+
+        statusBox.innerHTML = '<i class="fa-solid fa-circle text-green"></i> AI Ready - Scanning...';
+        startVideo();
+    }).catch(err => {
+        statusBox.innerText = "Error loading AI models. Check folder name.";
+        console.error("AI Error:", err);
+    });
+
+    function startVideo() {
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => { 
+                video.srcObject = stream; 
+                video.addEventListener('play', () => {
+                    if (!isScanning) startScanning();
+                });
+            });
+    }
+
+    async function startScanning() {
+        isScanning = true;
+        setInterval(async () => {
+            if (video.paused || video.ended) return;
+
+            const detection = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
+                .withFaceLandmarks()
+                .withFaceDescriptor();
+
+            if (detection && faceMatcher) {
+                const bestMatch = faceMatcher.findBestMatch(detection.descriptor);
+                
+                if (bestMatch.label !== 'unknown') {
+                    const [name, enrollment_no] = bestMatch.label.split("|");
+                    markPresent(enrollment_no, name);
+                } else {
+                    statusBox.innerHTML = '<i class="fa-solid fa-circle text-red"></i> Unknown Face';
+                }
+            }
+        }, 1000); 
+    }
+
+    let markedToday = []; 
+    function markPresent(enrollment_no, name) {
+        if (markedToday.includes(enrollment_no)) return;
+        markedToday.push(enrollment_no);
+
+        statusBox.innerHTML = `<i class="fa-solid fa-check text-green"></i> Recognized: ${name}`;
+        
+        fetch('/mark_attendance', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ enrollment_no: enrollment_no })
+        }).then(res=>res.json()).then(data => {
+            if(data.ok) {
+                const item = document.createElement('div');
+                item.className = "alert success";
+                item.innerHTML = `<i class="fa-solid fa-user-check"></i> <b>${name}</b> marked present at ${new Date().toLocaleTimeString()}`;
+                log.prepend(item);
+            }
+        });
+    }
+</script>
 {% endblock %}

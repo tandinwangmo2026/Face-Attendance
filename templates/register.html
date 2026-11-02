@@ -1,26 +1,127 @@
 {% extends "base.html" %}
+{% block title %}Register Student{% endblock %}
+{% block page_title %}Register New Student{% endblock %}
+
 {% block content %}
-<h1>Register New Student</h1>
+<div class="split-view">
+    <!-- Form Section -->
+    <div class="glass-card">
+        <h3 class="section-subtitle">Student Details</h3>
+        <div id="messageBox"></div>
+        
+        <div class="input-group">
+            <label>Enrollment Number</label>
+            <input type="text" id="enrollment_no" placeholder="e.g. 12345" required>
+        </div>
+        <div class="input-group">
+            <label>Full Name</label>
+            <input type="text" id="name" placeholder="e.g. Dechen Wangmo" required>
+        </div>
+        <div class="input-group">
+            <label>Department</label>
+            <select id="department">
+                <option value="CSE">Computer Science (CSE)</option>
+                <option value="IT">Information Technology (IT)</option>
+                <option value="ECE">Electronics (ECE)</option>
+            </select>
+        </div>
+        
+        <button onclick="captureAndRegister()" class="btn-gradient w-100" id="regBtn">
+            <i class="fa-solid fa-camera"></i> Scan Face & Save
+        </button>
+    </div>
 
-<div class="register-grid">
-  <div class="form-panel">
-    <label>Enrollment Number</label>
-    <input type="text" id="enrollment" placeholder="e.g. 02230045" required>
-    <label>Full Name</label>
-    <input type="text" id="name" placeholder="e.g. Tandin Wangmo" required>
-    <label>Department</label>
-    <select id="department">
-      <option>Computer System and Network</option>
-      <option>Civil Engineering</option>
-      <option>Electrical Engineering</option>
-    </select>
-    <button id="registerBtn" onclick="alert('Waiting for Person C to connect the camera script!')">📸 Capture Face & Register</button>
-    <p id="message" class="message"></p>
-  </div>
-
-  <div class="camera-panel">
-    <video id="regVideo" autoplay muted playsinline></video>
-    <p id="camStatus" class="cam-status">Camera feed will appear here</p>
-  </div>
+    <!-- Camera Section -->
+    <div class="camera-card">
+        <video id="video" autoplay muted playsinline></video>
+        <div class="camera-frame"></div>
+        <div class="status-badge" id="camStatus">Loading AI Models...</div>
+    </div>
 </div>
+
+<script>
+    const video = document.getElementById('video');
+    const camStatus = document.getElementById('camStatus');
+    const regBtn = document.getElementById('regBtn');
+    let modelsLoaded = false;
+
+    // 🆕 FIXED PATH WITH FLASK URL_FOR
+    const MODEL_URL = "{{ url_for('static', filename='face_models') }}";
+
+    // 1. Load AI Models
+    Promise.all([
+        faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+        faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+        faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
+    ]).then(() => {
+        modelsLoaded = true;
+        camStatus.innerHTML = '<i class="fa-solid fa-circle text-green"></i> AI Ready - Camera Active';
+        startVideo();
+    }).catch(err => {
+        camStatus.innerText = "Error loading AI models.";
+        console.error("AI Error:", err);
+    });
+
+    function startVideo() {
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => { video.srcObject = stream; })
+            .catch(err => { camStatus.innerText = "Camera blocked."; });
+    }
+
+    async function captureAndRegister() {
+        const enroll = document.getElementById('enrollment_no').value.trim();
+        const name = document.getElementById('name').value.trim();
+        const dept = document.getElementById('department').value;
+
+        if (!enroll || !name) { alert("Please fill all fields."); return; }
+        if (!modelsLoaded) { alert("Please wait for AI to load."); return; }
+
+        regBtn.innerHTML = "Scanning Face...";
+        regBtn.disabled = true;
+
+        const detection = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
+            .withFaceLandmarks()
+            .withFaceDescriptor();
+
+        if (!detection) {
+            alert("No face detected! Please look directly at the camera.");
+            regBtn.innerHTML = '<i class="fa-solid fa-camera"></i> Scan Face & Save';
+            regBtn.disabled = false;
+            return;
+        }
+
+        const faceEncoding = Array.from(detection.descriptor);
+
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0);
+        const base64Image = canvas.toDataURL('image/jpeg');
+
+        const res = await fetch('/register_student', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                enrollment_no: enroll, 
+                name: name, 
+                department: dept, 
+                image: base64Image, 
+                encoding: faceEncoding 
+            })
+        });
+        
+        const result = await res.json();
+        
+        if (result.ok) {
+            document.getElementById('messageBox').innerHTML = '<div class="alert success"><i class="fa-solid fa-check"></i> Face Saved Successfully!</div>';
+            document.getElementById('enrollment_no').value = "";
+            document.getElementById('name').value = "";
+        } else {
+            document.getElementById('messageBox').innerHTML = `<div class="alert error">${result.msg}</div>`;
+        }
+
+        regBtn.innerHTML = '<i class="fa-solid fa-camera"></i> Scan Face & Save';
+        regBtn.disabled = false;
+    }
+</script>
 {% endblock %}

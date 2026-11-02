@@ -1,42 +1,96 @@
 {% extends "base.html" %}
-{% block content %}
-<h1>Admin Dashboard</h1>
-<p class="subtitle">Welcome back, {{ session.admin }}!</p>
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}System Overview{% endblock %}
 
-<div class="stats">
-  <div class="stat-card">
-    <div class="stat-number">{{ students|length }}</div>
-    <div class="stat-label">Registered Students</div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-number">{{ today_count }}</div>
-    <div class="stat-label">Present Today ({{ today }})</div>
-  </div>
+{% block content %}
+
+<!-- 1. HIGH-TECH STATUS BANNER -->
+<div class="tech-banner">
+    <div class="tech-banner-content">
+        <div class="radar-icon">
+            <i class="fa-solid fa-satellite-dish fa-spin"></i>
+        </div>
+        <div>
+            <h4>Biometric Engine Active</h4>
+            <p>Neural network ready. Facial recognition protocols online.</p>
+        </div>
+    </div>
+    <div class="tech-banner-status">
+        <span class="pulse-dot"></span> LIVE SCANNING
+    </div>
 </div>
 
-<h2 class="section-title">Registered Students</h2>
-{% if students %}
-<table>
-  <thead>
-    <tr>
-      <th>Enrollment No.</th>
-      <th>Name</th>
-      <th>Department</th>
-      <th>Face Data</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for s in students %}
-    <tr>
-      <td>{{ s.enrollment_no }}</td>
-      <td>{{ s.name }}</td>
-      <td>{{ s.department }}</td>
-      <td>{{ '✅ Yes' if s.face_encoding else '❌ No' }}</td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
-{% else %}
-<p class="empty">No students registered yet. <a href="{{ url_for('register_page') }}">Register one →</a></p>
-{% endif %}
+<!-- 2. GLOWING STATS CARDS -->
+<div class="dashboard-grid">
+    <!-- Stat 1 -->
+    <div class="glass-card stat-item glow-purple">
+        <div class="icon-box purple-glow">
+            <i class="fa-solid fa-users-viewfinder"></i>
+        </div>
+        <div class="stat-details">
+            <h2>{{ students|length }}</h2>
+            <p>Registered Faces</p>
+        </div>
+    </div>
+
+    <!-- Stat 2 -->
+    <div class="glass-card stat-item glow-green">
+        <div class="icon-box green-glow">
+            <i class="fa-solid fa-face-smile-beam"></i>
+        </div>
+        <div class="stat-details">
+            <h2>{{ today_count }}</h2>
+            <p>Verified Today ({{ today }})</p>
+        </div>
+    </div>
+</div>
+
+<!-- 3. BIOMETRIC DATABASE TABLE -->
+<div class="glass-card mt-4">
+    <div class="card-top">
+        <h3><i class="fa-solid fa-database"></i> Biometric Database</h3>
+        <a href="{{ url_for('register_page') }}" class="btn-outline"><i class="fa-solid fa-plus"></i> Scan New Face</a>
+    </div>
+    
+    {% if students %}
+    <div class="table-responsive">
+        <table class="clean-table">
+            <thead>
+                <tr>
+                    <th>Facial ID Profile</th>
+                    <th>Enrollment No</th>
+                    <th>Department</th>
+                    <th>Encoding Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in students %}
+                <tr>
+                    <td>
+                        <div class="user-cell">
+                            <!-- Cyber Avatar -->
+                            <div class="cyber-avatar">
+                                <i class="fa-solid fa-user-astronaut"></i>
+                            </div>
+                            <div>
+                                <strong class="student-name">{{ s.name }}</strong>
+                                <span class="scan-id">ID: {{ s.enrollment_no }}</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td>{{ s.enrollment_no }}</td>
+                    <td><span class="dept-tag">{{ s.department }}</span></td>
+                    <td><span class="status-pill bio-active"><i class="fa-solid fa-microchip"></i> 128-D Encoded</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="fa-solid fa-user-slash"></i>
+        <p>No biometric data found. Please register a student.</p>
+    </div>
+    {% endif %}
+</div>
 {% endblock %}
